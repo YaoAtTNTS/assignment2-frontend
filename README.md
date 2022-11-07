@@ -6,6 +6,9 @@
 
 Refer to the [Node.js installation guide](https://www.guru99.com/download-install-node-js.html) for Windows.
 
+2. Git
+
+Refer to the [Git installation guide](https://github.com/git-guides/install-git) for Windows
 
 ## Run the Application Locally
 1. Open cmd, navigate to the directory where you want to download the source code.
