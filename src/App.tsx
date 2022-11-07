@@ -10,15 +10,18 @@ import {IInvoiceData, IPageData} from './interface/interfaces';
 import {  ChakraProvider } from "@chakra-ui/react";
 import FileUploader from "./component/FileUploader";
 import {PaginationChangedEvent} from "ag-grid-community/dist/lib/events";
+import SearchBox from "./component/SearchBox";
 
 
 function App() {
   const isDesktopOrLaptop = useMediaQuery({query: '(min-device-width: 1224px)'});
   const isBigScreen = useMediaQuery({ query: '(min-device-width: 1824px)' });
-  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
+  const isTabletOrMobile = useMediaQuery({ query: '(max-width: 768px)' });
   const isTabletOrMobileDevice = useMediaQuery({query: '(max-device-width: 1224px)'});
   const isPortrait = useMediaQuery({ query: '(orientation: portrait)' });
   const isRetina = useMediaQuery({ query: '(min-resolution: 2dppx)' });
+
+  const baseUrl: URL = new URL('http://localhost:8080/invoice/list')
 
   const gridRef = useRef<AgGridReact<IInvoiceData>>(null);
   const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), []);
@@ -55,7 +58,7 @@ function App() {
   }, [next]);
 
   const onGridReady = useCallback((params: GridReadyEvent) => {
-    fetch('http://localhost:8080/invoice/list')
+    fetch(baseUrl)
         .then((resp) => resp.json())
         .then((data: IPageData) => {
           setNext(data.next)
@@ -81,13 +84,66 @@ function App() {
     }
   }, []);
 
+  const [searchFields] = useState([
+    {value: "invoice_no", label:"Invoice No"},
+    {value: "stock_code", label:"Stock Code"},
+    {value: "description", label:"Description"},
+    {value: "customer_id", label:"Customer ID"},
+    {value: "country", label:"Country"},
+  ])
+
+  const [selectedFields, setSelectedFields] = useState([{value: "invoice_no", label:"Invoice No"}]);
+  const selectedFieldRef = useRef([{value: "invoice_no", label:"Invoice No"}]);
+  useEffect(() => {
+    selectedFieldRef.current = selectedFields
+  }, [selectedFields]);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const searchKeywordRef = useRef('');
+  useEffect(() => {
+    searchKeywordRef.current = searchKeyword
+  }, [searchKeyword]);
+
+  const onSearch = useCallback(() => {
+    if (selectedFieldRef.current[0].value != null && searchKeywordRef.current !== '') {
+      fetch(baseUrl + '?field=' + selectedFieldRef.current[0].value + '&keyword=' + searchKeywordRef.current)
+          .then((resp) => resp.json())
+          .then((data: IPageData) => {
+            setNext(data.next)
+            return data.results
+          })
+          .then((data: IInvoiceData[]) => setRowData(data));
+    } else {
+      fetch(baseUrl)
+          .then((resp) => resp.json())
+          .then((data: IPageData) => {
+            setNext(data.next)
+            return data.results
+          })
+          .then((data: IInvoiceData[]) => setRowData(data));
+    }
+  }, []);
+
+  const onSelect = useCallback((record) => {
+    console.log(record)
+    setSelectedFields(record)
+  }, [])
+
+  const onChange = useCallback((keyword) => {
+    console.log(keyword)
+    setSearchKeyword(keyword.target.value);
+  }, [])
+
 
   return (
       <div style={containerStyle}>
         <div className="App">
-          <ChakraProvider>
-            <FileUploader/>
-          </ChakraProvider>
+          <p>
+            <SearchBox onSearch={onSearch} onChange={onChange} options={searchFields} onSelect={onSelect} values={selectedFields} isTabletOrMobile={isTabletOrMobile}/>
+            { isTabletOrMobile && <div><br/><br/></div> }
+            <ChakraProvider>
+              <FileUploader onUploadComplete={onSearch}/>
+            </ChakraProvider>
+          </p>
 
           <div style={gridStyle} className="ag-theme-alpine">
             <AgGridReact<IInvoiceData>

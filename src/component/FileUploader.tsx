@@ -10,7 +10,11 @@ import {
 import FileService from '../service/FileService'
 import ProgressModal from "./ProgressModal";
 
-function FileUploader() {
+interface Props {
+    onUploadComplete: () => void,
+}
+
+function FileUploader({ onUploadComplete }: Props) {
     const [isProgressModalOpen, setIsProgressModalOpen] = useState<boolean>(false)
 
     const handleFileUpload = async (element: HTMLInputElement) => {
@@ -22,6 +26,20 @@ function FileUploader() {
 
         const toast = createStandaloneToast()
 
+        if (file[0].size > 52428800) {
+            toast({
+                title: 'File Size Too Big',
+                description: 'The only accepted file size is less than 50 Mb.',
+                status: 'error',
+                position: "top",
+                duration: null,
+                isClosable: true,
+                onCloseComplete: () => {
+                    element.value = ''
+                }
+            });
+            return
+        }
         if (FileService.getFileExtension(file[0].name) !== 'csv') {
             toast({
                 title: 'Invalid File Type',
@@ -52,12 +70,15 @@ function FileUploader() {
             position: "top",
             duration: null,
             isClosable: true,
-            onCloseComplete: () => {}
+            onCloseComplete: () => {
+                onUploadComplete();
+            }
         })
+
     }
 
     return (
-        <Box shadow="base">
+        <Box alignSelf={"center"}>
             <Flex direction="column" alignItems="center" mb="5">
                 <Box mt="0" ml="24">
                     <Input

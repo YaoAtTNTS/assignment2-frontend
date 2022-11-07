@@ -39,3 +39,35 @@
     transform: rotate(360deg);
   }
 }
+
+.search-box {
+  display: flex;
+  width: 400px;
+  height: 20px;
+  float: left;
+}
+
+.search-box-option {
+  display: inline-block;
+  width: fit-content;
+  border-style: solid;
+  border-color: #dddddd;
+}
+
+.search-box-input {
+  display: inline-block;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  height: 30px;
+  padding: 10px 10px 10px 25px;
+  width: 100%;
+  margin-right:10px;
+  font-size: 14px;
+}
+
+.search-box-icon {
+  display: inline-block;
+  border-style: solid;
+  border-color: #dddddd;
+}
